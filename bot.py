@@ -96,7 +96,6 @@ def add_chat(update: Update, context: CallbackContext):
         all_groups = json.loads(file.read())
     keyboard = list()
     for group_name in list(all_groups.keys()):
-        print(group_name)
         keyboard.append([InlineKeyboardButton(group_name, callback_data='|||'.join([group_name, chat_name]))])
     reply_markup = InlineKeyboardMarkup(keyboard)
     update.message.reply_text('Please choose a group:', reply_markup=reply_markup)
@@ -106,7 +105,11 @@ def add_chat_button(update: Update, context: CallbackContext):
     query = update.callback_query
     data = query.data.split('|||')
     chosen_group, chat_name = data[0], data[1]
-    print(chosen_group, chat_name)
+    with open('groups.json', 'r') as file:
+        all_groups = json.loads(file.read())
+    all_groups[chosen_group]['chats'].append(chat_name)
+    with open('groups.json', 'w') as file:
+        file.write(json.dumps(all_groups))
     context.bot.send_message(chat_id=update.effective_chat.id, text='ha loh i niche ne delaiu')
 
 
