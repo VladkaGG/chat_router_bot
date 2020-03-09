@@ -8,7 +8,7 @@ from callbacks.error import error
 from callbacks.show import show_groups, show_chats
 from callbacks.delete_groups import delete_groups, delete_groups_button
 from callbacks.add_chat import add_chat, add_chat_button, ending_add_chat
-from callbacks.delete_chat import delete_chat, delete_chat_button
+from callbacks.delete_chat import delete_chat, delete_chat_button, ending_delete_chat
 
 logger = logging.getLogger('root')
 logger.setLevel('CRITICAL')
@@ -42,7 +42,9 @@ add_chat_handler = ConversationHandler(entry_points=[CommandHandler('add_chat', 
                                        fallbacks=[CommandHandler('add_chat', add_chat)])
 delete_chat_handler = ConversationHandler(entry_points=[CommandHandler('delete_chat', delete_chat)],
                                           states={
-                                              0: [CallbackQueryHandler(delete_chat_button)]
+                                              0: [CallbackQueryHandler(delete_chat)],
+                                              1: [CallbackQueryHandler(delete_chat_button)],
+                                              2: [CallbackQueryHandler(ending_delete_chat)]
                                           },
                                           fallbacks=[CommandHandler('delete_chat', delete_chat)])
 error_handler = MessageHandler(Filters.text, error)

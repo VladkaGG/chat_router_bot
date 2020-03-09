@@ -62,5 +62,5 @@ def delete_groups_button(update: Update, context: CallbackContext):
         file.write(json.dumps(all_groups))
     context.bot.delete_message(chat_id=query.message.chat_id,
                                message_id=query.message.message_id)
-    context.bot.send_message(chat_id=update.effective_chat.id, text="I've done!")
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Done!")
     return 2

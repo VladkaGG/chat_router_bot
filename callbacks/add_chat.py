@@ -17,6 +17,7 @@ def add_chat(update: Update, context: CallbackContext):
     update.message.reply_text('Please choose a group:', reply_markup=reply_markup)
     return 1
 
+
 @run_async
 def add_chat_button(update: Update, context: CallbackContext):
     query = update.callback_query
