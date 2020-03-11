@@ -1,3 +1,4 @@
+telethon
 # Use command pip install -r requirements.txt
 certifi==2019.11.28
 cffi==1.14.0

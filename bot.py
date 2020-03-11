@@ -1,14 +1,8 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, \
     ConversationHandler
 import logging
-from callbacks.add_group import add_group
-from callbacks.start import start
-from callbacks.help import help_callback
-from callbacks.error import error
-from callbacks.show import show_groups, show_chats
-from callbacks.delete_groups import delete_groups, delete_groups_button
-from callbacks.add_chat import add_chat, add_chat_button, ending_add_chat
-from callbacks.delete_chat import delete_chat, delete_chat_button, ending_delete_chat
+from callbacks.all_callbacks import *
+from telegram_client.add_user import *
 
 logger = logging.getLogger('root')
 logger.setLevel('CRITICAL')
@@ -27,12 +21,12 @@ show_groups_handler = ConversationHandler(entry_points=[CommandHandler('show_gro
                                               1: [CallbackQueryHandler(show_chats)]
                                           },
                                           fallbacks=[CommandHandler('show_groups', show_groups)])
-delete_groups_handler = ConversationHandler(entry_points=[CommandHandler('delete_group', delete_groups)],
+delete_groups_handler = ConversationHandler(entry_points=[CommandHandler('delete_group', delete_group)],
                                             states={
-                                                0: [CommandHandler('delete_group', delete_groups)],
-                                                1: [CallbackQueryHandler(delete_groups_button)]
+                                                0: [CommandHandler('delete_group', delete_group)],
+                                                1: [CallbackQueryHandler(delete_group_button)]
                                             },
-                                            fallbacks=[CommandHandler('delete_group', delete_groups)])
+                                            fallbacks=[CommandHandler('delete_group', delete_group)])
 add_chat_handler = ConversationHandler(entry_points=[CommandHandler('add_chat', add_chat)],
                                        states={
                                            0: [CommandHandler('add_chat', add_chat)],
@@ -40,6 +34,13 @@ add_chat_handler = ConversationHandler(entry_points=[CommandHandler('add_chat', 
                                            2: [MessageHandler(Filters.text, ending_add_chat)]
                                        },
                                        fallbacks=[CommandHandler('add_chat', add_chat)])
+add_user_handler = ConversationHandler(entry_points=[CommandHandler('add_user', add_chat)],
+                                       states={
+                                           0: [CommandHandler('add_user', add_chat)],
+                                           1: [CallbackQueryHandler(add_chat_button)],
+                                           2: [MessageHandler(Filters.text, ending_add_user)]
+                                       },
+                                       fallbacks=[CommandHandler('add_user', add_chat)])
 delete_chat_handler = ConversationHandler(entry_points=[CommandHandler('delete_chat', delete_chat)],
                                           states={
                                               0: [CallbackQueryHandler(delete_chat)],
@@ -61,6 +62,7 @@ if __name__ == '__main__':
     dispatcher.add_handler(delete_groups_handler)
     dispatcher.add_handler(add_chat_handler)
     dispatcher.add_handler(delete_chat_handler)
+    dispatcher.add_handler(add_user_handler)
     dispatcher.add_handler(error_handler)
 
     updater.start_polling()
