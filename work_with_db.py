@@ -1,7 +1,7 @@
 import psycopg2
 import logging
 
-from table_create import create_tables
+from extras.table_create import create_tables
 from psycopg2.extras import DictCursor, execute_values
 from psycopg2 import sql, OperationalError
 
