@@ -51,7 +51,7 @@ delete_chat_handler = ConversationHandler(entry_points=[CommandHandler('delete_c
 error_handler = MessageHandler(Filters.text, error)
 
 if __name__ == '__main__':
-    updater = Updater(token='829440405:AAFzQJ13Kc3d04TeG4dTyd672M4diFsiR7c', use_context=True, workers=20)
+    updater = Updater(token='', use_context=True, workers=20)
     dispatcher = updater.dispatcher
     job = updater.job_queue
 

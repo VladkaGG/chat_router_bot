@@ -33,7 +33,7 @@ if __name__ == '__main__':
         api_hash = os.getenv('HASH_ID') or 'e4c55efb9a74a757fdeb232fd97590b8'
         phone_number = os.getenv('USER_ID') or '+79142438227'
     try:
-        client = TelegramClient(StringSession('1ApWapzMBu213br00TfVaTm4CUXqYgNLww_xNDW1cOuQfgZgR_UFf4Ok8e2LkDgCLfL4Ppv98hkpc1tKG7HU9Dv3pOAptl9pwPf8gqR80B3fvBd_Gtx-9zCOKBX_YdEGJ3lBVbsnBclM1I6P5fo4hfG5qiIT9M6COJMkPgH1U_QpJPpq5by7swvSTJ_cMqRXyoY0_Xdf--7fS3un_UJKr_OJVL_ggMjytDfMdMwtHmropSsjVFM1Rt4Pb2scFFD9FvzBvyAbCBAA_xp5pwPFhlJaPR0BZ2BSjNiJ1zrIhYjtcjT8uvpaK8UB0SB9Cok8w8AT9_csqmBPFCWWDafQVnWfltjCQLQo='), api_id, api_hash)
+        client = TelegramClient(StringSession(''), api_id, api_hash)
         print(1)
         client.connect()
     except Exception as e:
