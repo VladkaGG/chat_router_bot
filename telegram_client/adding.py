@@ -1,4 +1,4 @@
-from telethon import TelegramClient
+from telethon.sync import TelegramClient
 from telethon.sessions import StringSession
 from telethon.errors.rpcerrorlist import UserIdInvalidError, ChatIdInvalidError
 from telethon.tl.functions.messages import GetDialogsRequest, AddChatUserRequest
@@ -8,19 +8,11 @@ import configparser
 import datetime
 import os
 import logging
+import asyncio
 logger = logging.getLogger(__name__)
 
-target_chat = 'alala'
-user_to_add = 'batalyoni'
 
-
-def add_user(a, b):
-    a+b
-    pass
-
-
-# def add_user(target_chat, user_to_add):
-if __name__ == '__main__':
+def add_user(target_chat, user_to_add):
     try:
         config = configparser.ConfigParser()
         config.read('config.ini')
@@ -33,17 +25,15 @@ if __name__ == '__main__':
         api_hash = os.getenv('HASH_ID') or 'e4c55efb9a74a757fdeb232fd97590b8'
         phone_number = os.getenv('USER_ID') or '+79142438227'
     try:
-        client = TelegramClient(StringSession(''), api_id, api_hash)
-        print(1)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        client = TelegramClient(StringSession('your_stringsession'), api_id, api_hash)
         client.connect()
     except Exception as e:
-        print('HUETA {}'.format(e))
-        raise
-        # return 'HUETA {}'.format(e)
+        return 'HUETA {}'.format(e)
     if not client.is_user_authorized():
         client.send_code_request(phone_number)
         client.sign_in(phone_number, input('Enter the code: '))
-
     result = client(GetDialogsRequest(
         offset_date=datetime.datetime.now(),
         offset_id=0,
@@ -62,10 +52,10 @@ if __name__ == '__main__':
             break
     if not chat_to_add:
         error_str = "Some troubles with chat {} " \
-                    "(probably you doesn't have admin access or write a wrong chat name)".format(chat_to_add)
+                    "(probably you doesn't have admin access or write a wrong chat name)".format(target_chat)
         logger.error(error_str)
-        raise error_str
-        # return error_str
+        loop.close()
+        return error_str
     error_str = None
     try:
         user = client.get_entity(user_to_add)
@@ -78,9 +68,9 @@ if __name__ == '__main__':
         error_str = "Some troubles with username {} (maybe you've written a wrong username)".format(user_to_add)
     except ChatIdInvalidError:
         error_str = "Some troubles with chat {} " \
-                    "(probably you doesn't have admin access or write a wrong chat name)".format(chat_to_add)
+                    "(probably you doesn't have admin access or write a wrong chat name)".format(target_chat)
     except:
         error_str = "Unexpected"
     finally:
-        print(error_str or "{} added to {}".format(user_to_add, target_chat))
-        # return error_str or "{} added to {}".format(user_to_add, target_chat)
+        loop.close()
+        return error_str or "{} added to {}".format(user_to_add, target_chat)
