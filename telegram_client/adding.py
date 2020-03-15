@@ -38,12 +38,10 @@ def add_user(target_chat, user_to_add):
         if dialog.name == target_chat:
             chat_to_add = dialog.id
     if not chat_to_add:
-        error_str = "Some troubles with chat {} " \
-                    "(probably you doesn't have admin access or write a wrong chat name)".format(target_chat)
-        logger.error(error_str)
         client.disconnect()
         loop.close()
-        return error_str
+        return "Some troubles with chat {} " \
+                    "(probably you doesn't have admin access or write a wrong chat name)".format(target_chat)
     error_str = None
     try:
         user = client.get_entity(user_to_add)

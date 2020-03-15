@@ -1,8 +1,6 @@
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, \
-    ConversationHandler
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, ConversationHandler
 import logging
 from callbacks.all_callbacks import *
-from telegram_client.add_user import *
 
 logger = logging.getLogger('root')
 logger.setLevel('CRITICAL')
@@ -21,33 +19,33 @@ show_groups_handler = ConversationHandler(entry_points=[CommandHandler('show_gro
                                               1: [CallbackQueryHandler(show_chats)]
                                           },
                                           fallbacks=[CommandHandler('show_groups', show_groups)])
-delete_groups_handler = ConversationHandler(entry_points=[CommandHandler('delete_group', delete_group)],
+delete_groups_handler = ConversationHandler(entry_points=[CommandHandler('delete_group', DeleteGroup.delete_group)],
                                             states={
-                                                0: [CommandHandler('delete_group', delete_group)],
-                                                1: [CallbackQueryHandler(delete_group_button)]
+                                                0: [CommandHandler('delete_group', DeleteGroup.delete_group)],
+                                                1: [CallbackQueryHandler(DeleteGroup.delete_group_button)]
                                             },
-                                            fallbacks=[CommandHandler('delete_group', delete_group)])
-add_chat_handler = ConversationHandler(entry_points=[CommandHandler('add_chat', add_chat)],
+                                            fallbacks=[CommandHandler('delete_group', DeleteGroup.delete_group)])
+add_chat_handler = ConversationHandler(entry_points=[CommandHandler('add_chat', AddChat.add_chat)],
                                        states={
-                                           0: [CommandHandler('add_chat', add_chat)],
-                                           1: [CallbackQueryHandler(add_chat_button)],
-                                           2: [MessageHandler(Filters.text, ending_add_chat)]
+                                           0: [CommandHandler('add_chat', AddChat.add_chat)],
+                                           1: [CallbackQueryHandler(AddChat.add_chat_button)],
+                                           2: [MessageHandler(Filters.text, AddChat.ending_add_chat)]
                                        },
-                                       fallbacks=[CommandHandler('add_chat', add_chat)])
-add_user_handler = ConversationHandler(entry_points=[CommandHandler('add_user', add_chat)],
+                                       fallbacks=[CommandHandler('add_chat', AddChat.add_chat)])
+add_user_handler = ConversationHandler(entry_points=[CommandHandler('add_user', AddChat.add_chat)],
                                        states={
-                                           0: [CommandHandler('add_user', add_chat)],
-                                           1: [CallbackQueryHandler(add_chat_button)],
-                                           2: [MessageHandler(Filters.text, ending_add_user)]
+                                           0: [CommandHandler('add_user', AddChat.add_chat)],
+                                           1: [CallbackQueryHandler(AddChat.add_chat_button)],
+                                           2: [MessageHandler(Filters.text, AddChat.ending_add_user)]
                                        },
-                                       fallbacks=[CommandHandler('add_user', add_chat)])
-delete_chat_handler = ConversationHandler(entry_points=[CommandHandler('delete_chat', delete_chat)],
+                                       fallbacks=[CommandHandler('add_user', AddChat.add_chat)])
+delete_chat_handler = ConversationHandler(entry_points=[CommandHandler('delete_chat', DeleteChat.delete_chat)],
                                           states={
-                                              0: [CallbackQueryHandler(delete_chat)],
-                                              1: [CallbackQueryHandler(delete_chat_button)],
-                                              2: [CallbackQueryHandler(ending_delete_chat)]
+                                              0: [CallbackQueryHandler(DeleteChat.delete_chat)],
+                                              1: [CallbackQueryHandler(DeleteChat.delete_chat_button)],
+                                              2: [CallbackQueryHandler(DeleteChat.ending_delete_chat)]
                                           },
-                                          fallbacks=[CommandHandler('delete_chat', delete_chat)])
+                                          fallbacks=[CommandHandler('delete_chat', DeleteChat.delete_chat)])
 error_handler = MessageHandler(Filters.text, error)
 
 if __name__ == '__main__':
