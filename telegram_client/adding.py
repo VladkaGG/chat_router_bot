@@ -21,9 +21,9 @@ def add_user(target_chat, user_to_add):
         api_hash = config['Telegram']['api_hash']
         phone_number = config['Telegram']['phone_number']
     except:
-        api_id = os.getenv('API_ID') or 1241185
-        api_hash = os.getenv('HASH_ID') or 'e4c55efb9a74a757fdeb232fd97590b8'
-        phone_number = os.getenv('USER_ID') or '+79142438227'
+        api_id = os.getenv('API_ID')
+        api_hash = os.getenv('HASH_ID')
+        phone_number = os.getenv('USER_ID')
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -59,7 +59,7 @@ def add_user(target_chat, user_to_add):
     error_str = None
     try:
         user = client.get_entity(user_to_add)
-        client(AddChatUserRequest(chat_to_add, InputUser(user.id, user.access_hash), fwd_limit=10))
+        await client(AddChatUserRequest(chat_to_add, InputUser(user.id, user.access_hash), fwd_limit=10))
     except PeerFloodError:
         error_str = "Getting Flood Error from telegram. Script is stopping now. Please try again after some time."
     except UserPrivacyRestrictedError:
