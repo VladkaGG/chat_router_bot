@@ -26,7 +26,7 @@ def add_user(target_chat, user_to_add):
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        client = TelegramClient(StringSession('your_stringsession'), api_id, api_hash)
+        client = TelegramClient(phone_number, api_id, api_hash)
         client.connect()
     except Exception as e:
         return 'HUETA {}'.format(e)
