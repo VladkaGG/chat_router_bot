@@ -92,11 +92,19 @@ class DbModel:
                 sql.Identifier(column))
             cursor.execute(query, (change_value, value))
 
+    def insert_group(self, group_name, parent_group):
+        group_id = self.select_some_data('Groups', 'Name', parent_group)[0][0]
+        self.insert_data('Groups', ('Name', 'Parent_group'), [(group_name, group_id)])
+
+    def delete_group(self, group_name):
+        self.delete_data('Groups', 'Name', group_name)
+
 
 if __name__ == '__main__':
     Model = DbModel()  # Лучше передавать все кортежах, так как они не изменяемые
     list_of_values = [('First',), ('Second',)]  # Для передачи одного значения [('First',)]
-    Model.insert_data('Groups', ('Name',), list_of_values)  # Для передачи нескольких колонок ('Name', 'Id')
-    Model.delete_data('Groups', 'Name', 'First')
-    Model.update_data('Groups', 'Name', 'Good', 'Name', 'Third')
+    # Model.insert_data('Groups', ('Name',), list_of_values)  # Для передачи нескольких колонок ('Name', 'Id')
+    # Model.update_data('Groups', 'Parent_group', 44, 'Name', 'Second')
+    # Model.delete_data('Groups', 'Name', 'Second')
+    Model.insert_group('Third', 'First')
     print(Model.select_all_data('Groups'))
