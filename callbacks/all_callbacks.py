@@ -52,7 +52,7 @@ def add_group(update: Update, context: CallbackContext):
 
 class DeleteGroup:
     all_groups: dict = {}
-
+    parent_id = None
 
 @run_async
 def delete_group(update: Update, context: CallbackContext):
@@ -60,6 +60,7 @@ def delete_group(update: Update, context: CallbackContext):
         all_groups = json.loads(file.read())
         DeleteGroup.all_groups = all_groups
     reply_markup = Markup(all_groups)
+    reply_markup.add_select()
     update.message.reply_text('Which group do you want to delete?', reply_markup=reply_markup.return_keyboard())
     return 1
 
@@ -72,22 +73,38 @@ def delete_group_button(update: Update, context: CallbackContext):
         context.bot.delete_message(chat_id=query.message.chat_id,
                                    message_id=query.message.message_id)
         return 2
+    elif data == 'select':
+        select_mode = int(data.split('|||')[1])
+        page = int(data.split('|||')[2])
+        reply_markup = Markup(DeleteGroup.all_groups, page, select_mode)
+        reply_markup.current()
+        reply_markup.add_select()
+        context.bot.edit_message_text(text="Which group do you want to delete?",
+                                      chat_id=query.message.chat_id,
+                                      message_id=query.message.message_id,
+                                      reply_markup=reply_markup.return_keyboard())
     elif choice in ['prev', 'next']:
         page = int(data.split('|||')[1])
         reply_markup = Markup(DeleteGroup.all_groups, page)
-        reply_markup.next() if choice == 'next' else reply_markup.prev()
+        if choice == 'next':
+            reply_markup.next()
+            reply_markup.selection()
+        else:
+            reply_markup.prev()
+            reply_markup.selection()
         context.bot.edit_message_text(text="Which group do you want to delete?",
                                       chat_id=query.message.chat_id,
                                       message_id=query.message.message_id,
                                       reply_markup=reply_markup.return_keyboard())
         return 1
+    select_mode = int(data.split('|||')[1])
     DeleteGroup.all_groups.pop(data)
     with open('groups.json', 'w') as file:
         file.write(json.dumps(DeleteGroup.all_groups))
     DeleteGroup.all_groups = {}
     context.bot.delete_message(chat_id=query.message.chat_id,
                                message_id=query.message.message_id)
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Done!")
+    context.bot.answer_callback_query(chat_id=update.effective_chat.id, text="Done!")
     return 2
 
 
