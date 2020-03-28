@@ -39,6 +39,7 @@ class DbConnection:
 
 class DbModel:
     """Примеры работы функций DbModel приведены в конце"""
+
     def __init__(self):
         create_tables(DbConnection())
         logging.basicConfig(format=u'%(levelname)-8s [%(asctime)s] %(message)s', level=logging.DEBUG,
@@ -52,16 +53,20 @@ class DbModel:
             cursor.execute(query)
             return cursor.fetchall()
 
-    def select_some_data(self, table_name, column, value):
+    def select_some_data(self, select_column, table_name, column, value):
         """Функция для вывода всех данных с конкретным значением
          из одной таблицы, имя которой передается в table_name, название колонки в column,
          а значение колонки в value"""
+        answer = []
         with DbConnection() as cursor:
             query = sql.SQL('SELECT * FROM {} WHERE {}=%s').format(
                 sql.Identifier(table_name),
                 sql.Identifier(column))
             cursor.execute(query, (value,))
-            return cursor.fetchall()
+            result = cursor.fetchall()
+            for row in result:
+                answer.append(row[select_column])
+            return answer
 
     def insert_data(self, table_name, columns, values):
         """Функция для вставки данных в таблицу, имя таблицы передается в table_name,
@@ -92,8 +97,12 @@ class DbModel:
                 sql.Identifier(column))
             cursor.execute(query, (change_value, value))
 
-    def insert_group(self, group_name, parent_group):
-        group_id = self.select_some_data('Groups', 'Name', parent_group)[0][0]
+    def show_groups(self, parent_group):
+        group_id = self.select_some_data('Id', 'Groups', 'Name', parent_group)[0]
+        return self.select_some_data('Name', 'Groups', 'Parent_group', group_id)
+
+    def add_group(self, group_name, parent_group):
+        group_id = self.select_some_data('Id', 'Groups', 'Name', parent_group)[0]
         self.insert_data('Groups', ('Name', 'Parent_group'), [(group_name, group_id)])
 
     def delete_group(self, group_name):
@@ -102,9 +111,9 @@ class DbModel:
 
 if __name__ == '__main__':
     Model = DbModel()  # Лучше передавать все кортежах, так как они не изменяемые
-    list_of_values = [('First',), ('Second',)]  # Для передачи одного значения [('First',)]
+    # list_of_values = [('Parent',)]  # Для передачи одного значения [('First',)]
     # Model.insert_data('Groups', ('Name',), list_of_values)  # Для передачи нескольких колонок ('Name', 'Id')
     # Model.update_data('Groups', 'Parent_group', 44, 'Name', 'Second')
     # Model.delete_data('Groups', 'Name', 'Second')
-    Model.insert_group('Third', 'First')
-    print(Model.select_all_data('Groups'))
+    # Model.add_group('Child', 'Parent')
+    print(Model.show_groups('Parent'))
