@@ -1,6 +1,7 @@
 from callbacks import run_async, Update, CallbackContext, json
 from callbacks.Buttons import Markup
 from telegram_client.adding import add_user
+from work_with_db import DbModel
 
 
 @run_async
@@ -52,10 +53,12 @@ def add_group(update: Update, context: CallbackContext):
 
 class DeleteGroup:
     all_groups: dict = {}
-    parent_id = None
+    parent_name = None
 
 @run_async
 def delete_group(update: Update, context: CallbackContext):
+    Db = DbModel
+    DeleteGroup.all_groups = Db.show_groups(parent_name)
     with open('groups.json', 'r') as file:
         all_groups = json.loads(file.read())
         DeleteGroup.all_groups = all_groups
