@@ -1,6 +1,0 @@
-ERROR    [2020-03-03 20:50:02,574] Exception occurred
-<traceback object at 0x7f6bad99bfa0>
-<class 'psycopg2.errors.SyntaxError'>: syntax error at or near "'Groups'"
-LINE 1: INSERT INTO Identifier('Groups') (Composed([Identifier('N'),...
-                               ^
-
