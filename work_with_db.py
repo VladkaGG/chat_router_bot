@@ -97,6 +97,15 @@ class DbModel:
                 sql.Identifier(column))
             cursor.execute(query, (change_value, value))
 
+    def show_first_groups(self):
+        answer = []
+        with DbConnection() as cursor:
+            cursor.execute('SELECT * FROM "Groups" where "Parent_group" is NULL')
+            result = cursor.fetchall()
+            for row in result:
+                answer.append(row['Name'])
+            return answer
+
     def show_groups(self, parent_group):
         group_id = self.select_some_data('Id', 'Groups', 'Name', parent_group)[0]
         return self.select_some_data('Name', 'Groups', 'Parent_group', group_id)
@@ -116,4 +125,4 @@ if __name__ == '__main__':
     # Model.update_data('Groups', 'Parent_group', 44, 'Name', 'Second')
     # Model.delete_data('Groups', 'Name', 'Second')
     # Model.add_group('Child', 'Parent')
-    print(Model.show_groups('Parent'))
+    print(Model.show_first_groups())
