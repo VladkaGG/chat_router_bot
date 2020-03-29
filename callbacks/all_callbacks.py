@@ -52,16 +52,21 @@ def add_group(update: Update, context: CallbackContext):
 
 
 class DeleteGroup:
-    all_groups: dict = {}
+    all_groups = []
     parent_name = None
 
 @run_async
 def delete_group(update: Update, context: CallbackContext):
-    Db = DbModel
-    DeleteGroup.all_groups = Db.show_groups(parent_name)
-    with open('groups.json', 'r') as file:
-        all_groups = json.loads(file.read())
-        DeleteGroup.all_groups = all_groups
+    db = DbModel
+    if DeleteGroup.parent_name is None:
+        DeleteGroup.all_groups = db.show_first_groups
+        if not DeleteGroup.all_groups:
+            context.bot.send_message(chat_id=update.effective_chat.id, text="You don't have any groups!")
+            return 2
+    else:
+        DeleteGroup.all_groups = db.show_groups(DeleteGroup.parent_name)
+        if not DeleteGroup.all_groups:
+            context.bot.send_message(chat_id=update.effective_chat.id, text="There is no group in this!")
     reply_markup = Markup(all_groups)
     reply_markup.add_select()
     update.message.reply_text('Which group do you want to delete?', reply_markup=reply_markup.return_keyboard())
@@ -107,7 +112,7 @@ def delete_group_button(update: Update, context: CallbackContext):
     DeleteGroup.all_groups = {}
     context.bot.delete_message(chat_id=query.message.chat_id,
                                message_id=query.message.message_id)
-    context.bot.answer_callback_query(chat_id=update.effective_chat.id, text="Done!")
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Done!")
     return 2
 
 
