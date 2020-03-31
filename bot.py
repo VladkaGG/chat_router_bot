@@ -22,7 +22,8 @@ show_groups_handler = ConversationHandler(entry_points=[CommandHandler('show_gro
 delete_groups_handler = ConversationHandler(entry_points=[CommandHandler('delete_group', delete_group)],
                                             states={
                                                 0: [CommandHandler('delete_group', delete_group)],
-                                                1: [CallbackQueryHandler(delete_group_button)]
+                                                1: [CallbackQueryHandler(delete_group_button),
+                                                    MessageHandler(Filters.text, ending_delete_group)]
                                             },
                                             fallbacks=[CommandHandler('delete_group', delete_group)])
 add_chat_handler = ConversationHandler(entry_points=[CommandHandler('add_chat', add_chat)],
