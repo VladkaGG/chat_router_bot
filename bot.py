@@ -5,12 +5,13 @@ from callbacks.all_callbacks import *
 logger = logging.getLogger('root')
 logger.setLevel('CRITICAL')
 
-
 start_handler = CommandHandler('start', start)
 help_handler = CommandHandler('help', help_callback)
 add_group_handler = ConversationHandler(entry_points=[CommandHandler('add_group', add_group)],
                                         states={
-                                            0: [MessageHandler(Filters.text, add_group)]
+                                            0: [MessageHandler(Filters.text, add_group)],
+                                            1: [CallbackQueryHandler(add_group_button),
+                                                MessageHandler(Filters.text, ending_add_group)]
                                         },
                                         fallbacks=[CommandHandler('add_group', add_group)])
 show_groups_handler = ConversationHandler(entry_points=[CommandHandler('show_groups', show_groups)],

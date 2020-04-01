@@ -106,6 +106,13 @@ class DbModel:
                 answer.append(row['Name'])
             return answer
 
+    def add_first_group(self, group_name):
+        self.insert_data('Groups', ('Name',), [(group_name,)])
+
+    def show_parent_name(self, group_name):
+        group_id = self.select_some_data('Parent_group', 'Groups', 'Name', group_name)[0]
+        return self.select_some_data('Name', 'Groups', 'Id', group_id)
+
     def show_groups(self, parent_group):
         group_id = self.select_some_data('Id', 'Groups', 'Name', parent_group)[0]
         return self.select_some_data('Name', 'Groups', 'Parent_group', group_id)
@@ -124,5 +131,9 @@ if __name__ == '__main__':
     # Model.insert_data('Groups', ('Name',), list_of_values)  # Для передачи нескольких колонок ('Name', 'Id')
     # Model.update_data('Groups', 'Parent_group', 44, 'Name', 'Second')
     # Model.delete_data('Groups', 'Name', 'Second')
-    # Model.add_group('Child', 'Parent')
-    print(Model.show_first_groups())
+    Model.add_group('Baby', 'Child')
+    parent_name = Model.show_parent_name('Child')
+    if parent_name:
+        print('ok'+ parent_name[0])
+    else:
+        print('not')

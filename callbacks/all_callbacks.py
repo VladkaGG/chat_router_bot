@@ -29,46 +29,134 @@ def help_callback(update: Update, context: CallbackContext):
     context.bot.send_message(chat_id=update.effective_chat.id, text=text)
 
 
-def add_group(update: Update, context: CallbackContext):
-    data = update.message.text.split(' ')
-    if not data or (len(data) == 1 and data[0] == '/add_group'):
-        context.bot.send_message(chat_id=update.effective_chat.id, text='Write a group name:')
-        return 0
-    group_name = ' '.join(data[1:]) if data[0] == '/add_group' else ' '.join(data)
-    if ' ' in group_name:
-        context.bot.send_message(chat_id=update.effective_chat.id,
-                                 text='All spaces will be replaced by _')
-        group_name = group_name.replace(' ', '_')
-    with open('groups.json', 'r') as file:
-        all_groups: dict = json.loads(file.read())
-    if group_name in list(all_groups.keys()):
-        context.bot.send_message(chat_id=update.effective_chat.id, text='This group already exists')
-        return 1
-    all_groups[group_name] = {'groups': {}, 'chats': []}
-    with open('groups.json', 'w') as file:
-        file.write(json.dumps(all_groups))
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Done!")
-    return 1
+# def add_group(update: Update, context: CallbackContext):
+#     data = update.message.text.split(' ')
+#     if not data or (len(data) == 1 and data[0] == '/add_group'):
+#         context.bot.send_message(chat_id=update.effective_chat.id, text='Write a group name:')
+#         return 0
+#     group_name = ' '.join(data[1:]) if data[0] == '/add_group' else ' '.join(data)
+#     if ' ' in group_name:
+#         context.bot.send_message(chat_id=update.effective_chat.id,
+#                                  text='All spaces will be replaced by _')
+#         group_name = group_name.replace(' ', '_')
+#     with open('groups.json', 'r') as file:
+#         all_groups: dict = json.loads(file.read())
+#     if group_name in list(all_groups.keys()):
+#         context.bot.send_message(chat_id=update.effective_chat.id, text='This group already exists')
+#         return 1
+#     all_groups[group_name] = {'groups': {}, 'chats': []}
+#     with open('groups.json', 'w') as file:
+#         file.write(json.dumps(all_groups))
+#     context.bot.send_message(chat_id=update.effective_chat.id, text="Done!")
+#     return 1
 
 
 class DeleteGroup:
     all_groups = []
     parent_name = None
 
+
+@run_async
+def add_group(update: Update, context: CallbackContext):
+    db = DbModel()
+    DeleteGroup.all_groups = db.show_first_groups()
+    if not DeleteGroup.all_groups:
+        context.bot.send_message(chat_id=update.effective_chat.id, text="Write name of group if you want to add it")
+        return 1
+    all_groups = DeleteGroup.all_groups
+    reply_markup = Markup(all_groups)
+    update.message.reply_text('Tap on name to go on next level or write name of group if you want to add it',
+                              reply_markup=reply_markup.return_keyboard())
+    return 1
+
+
+def add_group_button(update: Update, context: CallbackContext):
+    query = update.callback_query
+    data = query.data
+    db = DbModel()
+    choice = data.split('|||')[0]
+    if data == 'exit':
+        DeleteGroup.all_groups = []
+        DeleteGroup.parent_name = None
+        context.bot.delete_message(chat_id=query.message.chat_id,
+                                   message_id=query.message.message_id)
+        return 2
+    elif choice == 'back':
+        parent_name = db.show_parent_name(DeleteGroup.parent_name)
+        if not parent_name:
+            DeleteGroup.parent_name = None
+            DeleteGroup.all_groups = db.show_first_groups()
+        else:
+            DeleteGroup.parent_name = parent_name[0]
+            DeleteGroup.all_groups = db.show_groups(DeleteGroup.parent_name)
+        reply_markup = Markup(DeleteGroup.all_groups)
+        context.bot.edit_message_text(text="Tap on name to go on next level or write name of group "
+                                           "if you want to add it",
+                                      chat_id=query.message.chat_id,
+                                      message_id=query.message.message_id,
+                                      reply_markup=reply_markup.return_keyboard())
+        return 1
+    elif choice in ['prev', 'next']:
+        page = int(data.split('|||')[1])
+        reply_markup = Markup(DeleteGroup.all_groups, page)
+        if choice == 'next':
+            reply_markup.next()
+            if DeleteGroup.parent_name is not None:
+                reply_markup.add_back()
+        else:
+            reply_markup.prev()
+            if DeleteGroup.parent_name is not None:
+                reply_markup.add_back()
+        context.bot.edit_message_text(text="Tap on name to go on next level or write name of group "
+                                           "if you want to add it",
+                                      chat_id=query.message.chat_id,
+                                      message_id=query.message.message_id,
+                                      reply_markup=reply_markup.return_keyboard())
+        return 1
+    DeleteGroup.parent_name = data
+    DeleteGroup.all_groups = db.show_groups(DeleteGroup.parent_name)
+    if not DeleteGroup.all_groups:
+        context.bot.send_message(chat_id=update.effective_chat.id, text="There is no group in this!")
+        return 1
+    else:
+        reply_markup = Markup(DeleteGroup.all_groups)
+        reply_markup.add_back()
+        context.bot.edit_message_text(text="Tap on name to go on next level or write name of group "
+                                           "if you want to add it",
+                                      chat_id=query.message.chat_id,
+                                      message_id=query.message.message_id,
+                                      reply_markup=reply_markup.return_keyboard())
+        return 1
+
+
+def ending_add_group(update: Update, context: CallbackContext):
+    db = DbModel()
+    group_name = update.message.text
+    if group_name in DeleteGroup.all_groups:
+        context.bot.send_message(chat_id=update.effective_chat.id,
+                                 text='This group already exists')
+        return 1
+    else:
+        if DeleteGroup.parent_name is not None:
+            db.add_group(group_name, DeleteGroup.parent_name)
+        else:
+            db.add_first_group(group_name)
+        context.bot.send_message(chat_id=update.effective_chat.id,
+                                 text='Done!')
+        DeleteGroup.all_groups = []
+        DeleteGroup.parent_name = None
+        return 2
+
+
 @run_async
 def delete_group(update: Update, context: CallbackContext):
     db = DbModel()
-    if DeleteGroup.parent_name is None:
-        DeleteGroup.all_groups = db.show_first_groups()
-        if not DeleteGroup.all_groups:
-            context.bot.send_message(chat_id=update.effective_chat.id, text="You don't have any groups "
-                                                                            "text /add_group first!")
-            DeleteGroup.all_groups = []
-            return 2
-    # else:
-    #     DeleteGroup.all_groups = db.show_groups(DeleteGroup.parent_name)
-    #     if not DeleteGroup.all_groups:
-    #         context.bot.send_message(chat_id=update.effective_chat.id, text="There is no group in this!")
+    DeleteGroup.all_groups = db.show_first_groups()
+    if not DeleteGroup.all_groups:
+        context.bot.send_message(chat_id=update.effective_chat.id, text="You don't have any groups "
+                                                                        "text /add_group first!")
+        DeleteGroup.all_groups = []
+        return 2
     all_groups = DeleteGroup.all_groups
     reply_markup = Markup(all_groups)
     update.message.reply_text('Tap on name to go on next level or write name of group if you want to delete it',
@@ -79,28 +167,40 @@ def delete_group(update: Update, context: CallbackContext):
 def delete_group_button(update: Update, context: CallbackContext):
     query = update.callback_query
     data = query.data
+    db = DbModel()
     choice = data.split('|||')[0]
     if data == 'exit':
+        DeleteGroup.all_groups = []
+        DeleteGroup.parent_name = None
         context.bot.delete_message(chat_id=query.message.chat_id,
                                    message_id=query.message.message_id)
         return 2
-    # elif data == 'select':
-    #     select_mode = int(data.split('|||')[1])
-    #     page = int(data.split('|||')[2])
-    #     reply_markup = Markup(DeleteGroup.all_groups, page, select_mode)
-    #     reply_markup.current()
-    #     reply_markup.add_select()
-    #     context.bot.edit_message_text(text="Which group do you want to delete?",
-    #                                   chat_id=query.message.chat_id,
-    #                                   message_id=query.message.message_id,
-    #                                   reply_markup=reply_markup.return_keyboard())
+    elif choice == 'back':
+        parent_name = db.show_parent_name(DeleteGroup.parent_name)
+        if not parent_name:
+            DeleteGroup.parent_name = None
+            DeleteGroup.all_groups = db.show_first_groups()
+        else:
+            DeleteGroup.parent_name = parent_name[0]
+            DeleteGroup.all_groups = db.show_groups(DeleteGroup.parent_name)
+        reply_markup = Markup(DeleteGroup.all_groups)
+        context.bot.edit_message_text(text="Tap on name to go on next level or write name of group "
+                                           "if you want to delete it",
+                                      chat_id=query.message.chat_id,
+                                      message_id=query.message.message_id,
+                                      reply_markup=reply_markup.return_keyboard())
+        return 1
     elif choice in ['prev', 'next']:
         page = int(data.split('|||')[1])
         reply_markup = Markup(DeleteGroup.all_groups, page)
         if choice == 'next':
             reply_markup.next()
+            if DeleteGroup.parent_name is not None:
+                reply_markup.add_back()
         else:
             reply_markup.prev()
+            if DeleteGroup.parent_name is not None:
+                reply_markup.add_back()
         context.bot.edit_message_text(text="Tap on name to go on next level or write name of group "
                                            "if you want to delete it",
                                       chat_id=query.message.chat_id,
@@ -108,19 +208,19 @@ def delete_group_button(update: Update, context: CallbackContext):
                                       reply_markup=reply_markup.return_keyboard())
         return 1
     DeleteGroup.parent_name = data
-    db = DbModel()
     DeleteGroup.all_groups = db.show_groups(DeleteGroup.parent_name)
     if not DeleteGroup.all_groups:
         context.bot.send_message(chat_id=update.effective_chat.id, text="There is no group in this!")
         return 1
-
-    with open('groups.json', 'w') as file:
-        file.write(json.dumps(DeleteGroup.all_groups))
-    DeleteGroup.all_groups = {}
-    context.bot.delete_message(chat_id=query.message.chat_id,
-                               message_id=query.message.message_id)
-    context.bot.send_message(chat_id=update.effective_chat.id, text="Done!")
-    return 2
+    else:
+        reply_markup = Markup(DeleteGroup.all_groups)
+        reply_markup.add_back()
+        context.bot.edit_message_text(text="Tap on name to go on next level or write name of group "
+                                           "if you want to delete it",
+                                      chat_id=query.message.chat_id,
+                                      message_id=query.message.message_id,
+                                      reply_markup=reply_markup.return_keyboard())
+        return 1
 
 
 def ending_delete_group(update: Update, context: CallbackContext):
