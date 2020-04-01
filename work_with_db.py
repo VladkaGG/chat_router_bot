@@ -124,6 +124,14 @@ class DbModel:
     def delete_group(self, group_name):
         self.delete_data('Groups', 'Name', group_name)
 
+    def add_chat(self, group_name, chat_name):
+        group_id = self.select_some_data('Id', 'Groups', 'Name', group_name)[0]
+        self.insert_data('Chats', ('Name', 'Group_id'), [(chat_name, group_id)])
+
+    def show_chats(self, group_name):
+        group_id = self.select_some_data('Id', 'Groups', 'Name', group_name)[0]
+        return self.select_some_data('Name', 'Chats', 'Group_id', group_id)
+
 
 if __name__ == '__main__':
     Model = DbModel()  # Лучше передавать все кортежах, так как они не изменяемые
@@ -131,9 +139,5 @@ if __name__ == '__main__':
     # Model.insert_data('Groups', ('Name',), list_of_values)  # Для передачи нескольких колонок ('Name', 'Id')
     # Model.update_data('Groups', 'Parent_group', 44, 'Name', 'Second')
     # Model.delete_data('Groups', 'Name', 'Second')
-    Model.add_group('Baby', 'Child')
-    parent_name = Model.show_parent_name('Child')
-    if parent_name:
-        print('ok'+ parent_name[0])
-    else:
-        print('not')
+    # Model.add_group('Baby', 'Child')
+    # parent_name = Model.show_parent_name('Child')

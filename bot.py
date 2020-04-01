@@ -30,7 +30,8 @@ delete_groups_handler = ConversationHandler(entry_points=[CommandHandler('delete
 add_chat_handler = ConversationHandler(entry_points=[CommandHandler('add_chat', add_chat)],
                                        states={
                                            0: [CommandHandler('add_chat', add_chat)],
-                                           1: [CallbackQueryHandler(add_chat_button)],
+                                           1: [CallbackQueryHandler(add_chat_button),
+                                               MessageHandler(Filters.text, ending_add_chat_button)],
                                            2: [MessageHandler(Filters.text, ending_add_chat)]
                                        },
                                        fallbacks=[CommandHandler('add_chat', add_chat)])
@@ -51,7 +52,7 @@ delete_chat_handler = ConversationHandler(entry_points=[CommandHandler('delete_c
 error_handler = MessageHandler(Filters.text, error)
 
 if __name__ == '__main__':
-    updater = Updater(token='your_token', use_context=True, workers=20)
+    updater = Updater(token='1023934495:AAEXZxUIkDKOwWSfHx0WqhpxFtPzk0ARWmo', use_context=True, workers=20)
     dispatcher = updater.dispatcher
     job = updater.job_queue
 

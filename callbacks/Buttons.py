@@ -13,8 +13,7 @@ class Markup:
 
     def add_back(self):
         back_button = [InlineKeyboardButton('back', callback_data='back')]
-        self.end_keyboard[len(self.end_keyboard)], self.end_keyboard[len(self.end_keyboard) - 1] = \
-            self.end_keyboard[len(self.end_keyboard) - 1], back_button
+        self.end_keyboard.insert(len(self.end_keyboard) - 1, back_button)
 
     def next(self):
         """Метод, который вызывается, в случае если пользователь нажал на next.
