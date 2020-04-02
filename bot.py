@@ -17,7 +17,8 @@ add_group_handler = ConversationHandler(entry_points=[CommandHandler('add_group'
 show_groups_handler = ConversationHandler(entry_points=[CommandHandler('show_groups', show_groups)],
                                           states={
                                               0: [CallbackQueryHandler(show_groups)],
-                                              1: [CallbackQueryHandler(show_chats)]
+                                              1: [CallbackQueryHandler(show_groups_button),
+                                                  MessageHandler(Filters.text, show_chats)]
                                           },
                                           fallbacks=[CommandHandler('show_groups', show_groups)])
 delete_groups_handler = ConversationHandler(entry_points=[CommandHandler('delete_group', delete_group)],
@@ -31,24 +32,25 @@ add_chat_handler = ConversationHandler(entry_points=[CommandHandler('add_chat', 
                                        states={
                                            0: [CommandHandler('add_chat', add_chat)],
                                            1: [CallbackQueryHandler(add_chat_button),
-                                               MessageHandler(Filters.text, ending_add_chat_button)],
-                                           2: [MessageHandler(Filters.text, ending_add_chat)]
+                                               MessageHandler(Filters.text, ending_add_chat)]
                                        },
                                        fallbacks=[CommandHandler('add_chat', add_chat)])
 add_user_handler = ConversationHandler(entry_points=[CommandHandler('add_user', add_chat)],
                                        states={
-                                           0: [CommandHandler('add_user', add_chat)],
-                                           1: [CallbackQueryHandler(add_chat_button)],
+                                           0: [CallbackQueryHandler(show_groups)],
+                                           1: [CallbackQueryHandler(show_groups_button),
+                                               MessageHandler(Filters.text, add_user)],
                                            2: [MessageHandler(Filters.text, ending_add_user)]
                                        },
                                        fallbacks=[CommandHandler('add_user', add_chat)])
-delete_chat_handler = ConversationHandler(entry_points=[CommandHandler('delete_chat', delete_chat)],
+delete_chat_handler = ConversationHandler(entry_points=[CommandHandler('delete_chat', show_groups)],
                                           states={
-                                              0: [CallbackQueryHandler(delete_chat)],
-                                              1: [CallbackQueryHandler(delete_chat_button)],
+                                              0: [CallbackQueryHandler(show_groups)],
+                                              1: [CallbackQueryHandler(show_groups_button),
+                                                  MessageHandler(Filters.text, ending_delete_chat_button)],
                                               2: [CallbackQueryHandler(ending_delete_chat)]
                                           },
-                                          fallbacks=[CommandHandler('delete_chat', delete_chat)])
+                                          fallbacks=[CommandHandler('delete_chat', show_groups)])
 error_handler = MessageHandler(Filters.text, error)
 
 if __name__ == '__main__':

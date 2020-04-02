@@ -132,10 +132,13 @@ class DbModel:
         group_id = self.select_some_data('Id', 'Groups', 'Name', group_name)[0]
         return self.select_some_data('Name', 'Chats', 'Group_id', group_id)
 
+    def delete_chat(self, chat_name):
+        self.delete_data('Chats', 'Name', chat_name)
+
 
 if __name__ == '__main__':
     Model = DbModel()  # Лучше передавать все кортежах, так как они не изменяемые
-    # list_of_values = [('Parent',)]  # Для передачи одного значения [('First',)]
+    # list_of_values = [('New group',)]  # Для передачи одного значения [('First',)]
     # Model.insert_data('Groups', ('Name',), list_of_values)  # Для передачи нескольких колонок ('Name', 'Id')
     # Model.update_data('Groups', 'Parent_group', 44, 'Name', 'Second')
     # Model.delete_data('Groups', 'Name', 'Second')
