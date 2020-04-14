@@ -1,13 +1,34 @@
 from callbacks import run_async, Update, CallbackContext, json
 from callbacks.Buttons import Markup
+from telegram_client import os, asyncio, TelegramClient
 from telegram_client.adding import add_user
+
+
+def identification(update, context) -> int:
+    user = update.effective_user
+    user_id = str(user.id)
+    # Если в базе есть запись с таким id, пользователь есть в одном из управляющих чатов,
+    # если нет, то он не имеет доступа к боту.
+    # return True if DbModel().select_user_ids(user_id) else False
+    with open('USERS.txt', 'r') as f:
+        if user_id in [x.rstrip('\n') for x in f.readlines()]:
+            context.bot.send_message(chat_id=update.effective_chat.id,
+                                     text="Hello from bot, {}! Type '/help' to get information about me".format(
+                                         user.username))
+            return 0
+        else:
+            context.bot.send_message(chat_id=update.effective_chat.id,
+                                     text="Sorry, {}, you can't use this bot".format(
+                                         user.username))
+            return 1
 
 
 @run_async
 def start(update: Update, context: CallbackContext):
     user = update.effective_user
     context.bot.send_message(chat_id=update.effective_chat.id,
-                             text="Hello from bot, {}! Type '/help' to get information about me".format(user.username))
+                             text="Hello, {}!".format(user.username))
+    return 0
 
 
 @run_async
@@ -26,13 +47,14 @@ def help_callback(update: Update, context: CallbackContext):
     for name, description in actual_functions.items():
         text += "{} - {}\n".format(name, description)
     context.bot.send_message(chat_id=update.effective_chat.id, text=text)
+    return 0
 
 
 def add_group(update: Update, context: CallbackContext):
     data = update.message.text.split(' ')
     if not data or (len(data) == 1 and data[0] == '/add_group'):
         context.bot.send_message(chat_id=update.effective_chat.id, text='Write a group name:')
-        return 0
+        return 1
     group_name = ' '.join(data[1:]) if data[0] == '/add_group' else ' '.join(data)
     if ' ' in group_name:
         context.bot.send_message(chat_id=update.effective_chat.id,
@@ -47,7 +69,7 @@ def add_group(update: Update, context: CallbackContext):
     with open('groups.json', 'w') as file:
         file.write(json.dumps(all_groups))
     context.bot.send_message(chat_id=update.effective_chat.id, text="Done!")
-    return 1
+    return 0
 
 
 class DeleteGroup:
@@ -71,7 +93,7 @@ def delete_group_button(update: Update, context: CallbackContext):
     if data == 'exit':
         context.bot.delete_message(chat_id=query.message.chat_id,
                                    message_id=query.message.message_id)
-        return 2
+        return 0
     elif choice in ['prev', 'next']:
         page = int(data.split('|||')[1])
         reply_markup = Markup(DeleteGroup.all_groups, page)
@@ -88,7 +110,7 @@ def delete_group_button(update: Update, context: CallbackContext):
     context.bot.delete_message(chat_id=query.message.chat_id,
                                message_id=query.message.message_id)
     context.bot.send_message(chat_id=update.effective_chat.id, text="Done!")
-    return 2
+    return 0
 
 
 class AddChat:
@@ -115,7 +137,7 @@ def add_chat_button(update: Update, context: CallbackContext):
     if data == 'exit':
         context.bot.delete_message(chat_id=query.message.chat_id,
                                    message_id=query.message.message_id)
-        return 3
+        return 0
     elif choice in ['prev', 'next']:
         page = int(data.split('|||')[1])
         reply_markup = Markup(AddChat.all_groups, page)
@@ -141,14 +163,14 @@ def ending_add_chat(update: Update, context: CallbackContext):
     if chat_name in all_groups[chosen_group]['chats']:
         context.bot.send_message(chat_id=update.effective_chat.id,
                                  text='This chat already exists in this group')
-        return 3
+        return 0
     all_groups[chosen_group]['chats'].append(chat_name)
     with open('groups.json', 'w') as file:
         file.write(json.dumps(all_groups))
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text='Done!')
     AddChat.choosing_group_for_adding = ''
-    return 3
+    return 0
 
 
 def ending_add_user(update: Update, context: CallbackContext):
@@ -160,14 +182,14 @@ def ending_add_user(update: Update, context: CallbackContext):
     del all_groups
     if not all_chats:
         context.bot.send_message(chat_id=update.effective_chat.id, text="This group doesn't have any chats")
-        return 3
+        return 0
     for chat in all_chats:
         result = add_user(chat, username)
         context.bot.send_message(chat_id=update.effective_chat.id, text=result)
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text='Done!')
     AddChat.choosing_group_for_adding = ''
-    return 3
+    return 0
 
 
 class DeleteChat:
@@ -194,7 +216,7 @@ def delete_chat_button(update: Update, context: CallbackContext):
     if data == 'exit':
         context.bot.delete_message(chat_id=query.message.chat_id,
                                    message_id=query.message.message_id)
-        return 4
+        return 0
     elif choice in ['prev', 'next']:
         page = int(data.split('|||')[1])
         reply_markup = Markup(DeleteChat.all_groups, page)
@@ -225,7 +247,7 @@ def ending_delete_chat(update: Update, context: CallbackContext):
     if data == 'exit':
         context.bot.delete_message(chat_id=query.message.chat_id,
                                    message_id=query.message.message_id)
-        return 3
+        return 0
     elif choice in ['prev', 'next']:
         page = int(data.split('|||')[1])
         reply_markup = Markup(DeleteChat.choice, page)
@@ -245,7 +267,7 @@ def ending_delete_chat(update: Update, context: CallbackContext):
     context.bot.edit_message_text(text='Done!',
                                   chat_id=update.effective_chat.id,
                                   message_id=query.message.message_id)
-    return 3
+    return 0
 
 
 @run_async
@@ -267,7 +289,7 @@ def show_chats(update: Update, context: CallbackContext):
     if data == 'exit':
         context.bot.delete_message(chat_id=query.message.chat_id,
                                    message_id=query.message.message_id)
-        return 2
+        return 0
     elif choice in ['prev', 'next']:
         page = int(data.split('|||')[1])
         with open('groups.json', 'r') as file:
